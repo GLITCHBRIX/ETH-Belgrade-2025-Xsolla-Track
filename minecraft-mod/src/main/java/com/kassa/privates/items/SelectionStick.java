@@ -26,9 +26,8 @@ public class SelectionStick {
             return false;
         }
         
-        Text customName = stack.get(DataComponentTypes.CUSTOM_NAME);
-        if (customName == null) return false;
-        
-        return customName.getString().equals("Private Selection Stick");
+        String displayName = stack.getName().getString();
+
+        return displayName.equals("Private Selection Stick");
     }
 }

@@ -13,7 +13,7 @@
   "icon": "assets/privates/icon.png",
   "environment": "server",
   "entrypoints": {
-    "main": ["com.yourname.privates.PrivatesMod"]
+    "main": ["com.kassa.privates.PrivatesMod"]
   },
   "depends": {
     "fabricloader": ">=${loader_version}",

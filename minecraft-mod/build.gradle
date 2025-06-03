@@ -12,9 +12,14 @@ base {
 
 repositories {
     maven {
-        name = 'ParchmentMC'
-        url = 'https://maven.parchmentmc.org'
+        name = 'Fabric'
+        url = 'https://maven.fabricmc.net/'
     }
+    maven {
+        name = 'FabricMC Snapshots'
+        url = 'https://maven.fabricmc.net/snapshots/'
+    }
+    mavenCentral()
 }
 
 loom {

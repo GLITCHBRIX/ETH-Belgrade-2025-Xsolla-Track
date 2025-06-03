@@ -4,8 +4,12 @@ pluginManagement {
             name = 'Fabric'
             url = 'https://maven.fabricmc.net/'
         }
+        maven {
+            name = 'FabricMC Snapshots'
+            url = 'https://maven.fabricmc.net/snapshots/'
+        }
         gradlePluginPortal()
     }
 }
 
-rootProject.name = 'privates-mod'
+rootProject.name = 'privates'

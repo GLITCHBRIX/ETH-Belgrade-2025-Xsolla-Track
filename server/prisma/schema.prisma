@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../database.sqlite"
+}
+
+// Game model
+model Game {
+  id          Int          @id @default(autoincrement())
+  name        String
+  collections Collection[]
+  players     Player[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("games")
+}
+
+// Player model
+model Player {
+  id            Int      @id @default(autoincrement())
+  gameId        Int
+  game          Game     @relation(fields: [gameId], references: [id])
+  playerId      String?
+  playerAddress String?
+  items         Item[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([gameId, playerId, playerAddress])
+  @@map("players")
+}
+
+// Collection model
+model Collection {
+  id              Int      @id @default(autoincrement())
+  gameId          Int
+  game            Game     @relation(fields: [gameId], references: [id])
+  contractAddress String
+  name            String
+  items           Item[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("collections")
+}
+
+// Item model
+model Item {
+  id           Int                 @id @default(autoincrement())
+  playerId     Int
+  player       Player              @relation(fields: [playerId], references: [id])
+  collectionId Int
+  collection   Collection          @relation(fields: [collectionId], references: [id])
+  name         String
+  description  String
+  image        String
+  externalUrl  String?
+  tokenId      Int
+  attributes   MetadataAttribute[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@map("items")
+  @@unique([collectionId, tokenId])
+}
+
+// MetadataAttribute model
+model MetadataAttribute {
+  id        Int      @id @default(autoincrement())
+  itemId    Int
+  item      Item     @relation(fields: [itemId], references: [id])
+  traitType String
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("metadata_attributes")
+}

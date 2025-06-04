@@ -1,10 +1,19 @@
 'use client';
 
-import { TabBar, View, Text } from '@xsolla-zk/react';
+import { TabBar, View, Text, NavBar, Typography } from '@xsolla-zk/react';
 import { useState, type ReactNode } from 'react';
 import { ScreenStack } from '~/components/stacks/screen-stack';
 import { Face, Question } from '@xsolla-zk/icons';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
+import WalletButton from '~/components/wallet/button';
+
+const DynamicToggleThemeButton = dynamic(
+  () => import('~/interface/toggle-theme-button').then((mod) => mod.ToggleThemeButton),
+  {
+    ssr: false,
+  },
+);
 
 export function MainLayout({ children }: { children: ReactNode }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -26,12 +35,13 @@ export function MainLayout({ children }: { children: ReactNode }) {
         tabBarShowLabel: true,
         tabBarLabelPosition: 'below-icon' as const,
         tabBarLabel: ({ focused }: { focused: boolean }) => (
-          <Text
+          <Typography
             color={focused ? '$content.brand-primary' : '$content.neutral-tertiary'}
-            fontSize="$1"
+            preset="compact.200.default"
+            marginTop={5}
           >
             How-to
-          </Text>
+          </Typography>
         ),
         tabBarIcon: ({
           focused,
@@ -55,12 +65,13 @@ export function MainLayout({ children }: { children: ReactNode }) {
         tabBarShowLabel: true,
         tabBarLabelPosition: 'below-icon' as const,
         tabBarLabel: ({ focused }: { focused: boolean }) => (
-          <Text
+          <Typography
             color={focused ? '$content.brand-primary' : '$content.neutral-tertiary'}
-            fontSize="$1"
+            preset="compact.200.default"
+            marginTop={5}
           >
             Profile
-          </Text>
+          </Typography>
         ),
         tabBarIcon: ({
           focused,
@@ -92,6 +103,17 @@ export function MainLayout({ children }: { children: ReactNode }) {
 
   return (
     <View maxWidth={1440} width="100%" height="100vh" marginHorizontal="auto">
+      <NavBar preset="default" backgroundColor="$layer.floor-1">
+        <NavBar.StartSlot>
+          <DynamicToggleThemeButton />
+        </NavBar.StartSlot>
+        <NavBar.Center>
+          <NavBar.Title>Xsolla Zk Web3 Portal</NavBar.Title>
+        </NavBar.Center>
+        <NavBar.EndSlot>
+          <WalletButton />
+        </NavBar.EndSlot>
+      </NavBar>
       <ScreenStack>{children}</ScreenStack>
       <TabBar
         state={state}

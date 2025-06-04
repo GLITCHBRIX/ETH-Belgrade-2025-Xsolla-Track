@@ -22,7 +22,6 @@ public class ProtectionHandler {
             }
             
             if (isProtectedAndNotOwner(serverPlayer, pos)) {
-                sendProtectionMessage(serverPlayer);
                 return false;
             }
             
@@ -41,7 +40,6 @@ public class ProtectionHandler {
             BlockPos pos = hitResult.getBlockPos();
             
             if (isProtectedAndNotOwner(serverPlayer, pos)) {
-                sendProtectionMessage(serverPlayer);
                 return ActionResult.FAIL;
             }
             
@@ -60,7 +58,6 @@ public class ProtectionHandler {
             BlockPos playerPos = serverPlayer.getBlockPos();
             
             if (isProtectedAndNotOwner(serverPlayer, playerPos)) {
-                sendProtectionMessage(serverPlayer);
                 return ActionResult.FAIL;
             }
             
@@ -75,7 +72,6 @@ public class ProtectionHandler {
             BlockPos entityPos = entity.getBlockPos();
             
             if (isProtectedAndNotOwner(serverPlayer, entityPos)) {
-                sendProtectionMessage(serverPlayer);
                 return ActionResult.FAIL;
             }
             
@@ -88,7 +84,6 @@ public class ProtectionHandler {
             }
             
             if (isProtectedAndNotOwner(serverPlayer, pos)) {
-                sendProtectionMessage(serverPlayer);
                 return ActionResult.FAIL;
             }
             
@@ -106,13 +101,26 @@ public class ProtectionHandler {
             return false;
         }
         
-        return !zone.isOwner(player.getUuidAsString());
+        if (!zone.isOwner(player.getUuidAsString())) {
+            sendProtectionMessage(player, zone);
+            return true;
+        }
+        
+        return false;
     }
     
-    private static void sendProtectionMessage(ServerPlayerEntity player) {
+    private static void sendProtectionMessage(ServerPlayerEntity player, PrivateZone zone) {
         player.sendMessage(
-            Text.literal("This area is protected! Only the zone owner can perform actions here.")
-                .formatted(Formatting.RED), 
+            Text.literal("This area is protected! Zone: ")
+                .formatted(Formatting.RED)
+                .append(Text.literal("'" + zone.getName() + "'")
+                    .formatted(Formatting.YELLOW))
+                .append(Text.literal(" owned by ")
+                    .formatted(Formatting.RED))
+                .append(Text.literal(zone.getOwnerName())
+                    .formatted(Formatting.GOLD))
+                .append(Text.literal(".")
+                    .formatted(Formatting.RED)), 
             true
         );
     }

@@ -17,17 +17,14 @@ contract GameNFT is ERC721URIStorage, Ownable, EIP712 {
     string private _baseTokenURI;
 
     // Mapping to track minted tokens
-    mapping(uint256 => bool) private _mintedTokens;
+    mapping(uint256 => bool) public mintedTokens;
     
-    // Mapping of used nonces
-    mapping(uint256 => bool) public usedNonces;
-
     // Signer address authorized to sign minting permits
     address public permissionedSigner;
 
     // EIP-712 typehash for mint permits
     bytes32 public constant PERMIT_TYPEHASH = keccak256(
-        "Permit(uint256 tokenId,address receiver,string tokenURI,uint256 nonce,uint256 deadline)"
+        "Permit(uint256 tokenId,address receiver,string tokenURI,uint256 deadline)"
     );
 
     event NFTMinted(address to, uint256 tokenId, string tokenURI);
@@ -38,7 +35,7 @@ contract GameNFT is ERC721URIStorage, Ownable, EIP712 {
         string memory symbol,
         string memory baseTokenURI,
         address signer
-    ) ERC721(name, symbol) Ownable(msg.sender) EIP712(name, "1") {
+    ) ERC721(name, symbol) Ownable(msg.sender) EIP712("GameNFT", "1") {
         _baseTokenURI = baseTokenURI;
         permissionedSigner = signer;
     }
@@ -61,11 +58,11 @@ contract GameNFT is ERC721URIStorage, Ownable, EIP712 {
      * @return The ID of the newly minted token
      */
     function mintNFT(address to, uint256 tokenId, string memory tokenURI) public onlyOwner returns (uint256) {
-        require(!_mintedTokens[tokenId], "Token ID already minted");
+        require(!mintedTokens[tokenId], "Token ID already minted");
         
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, tokenURI);
-        _mintedTokens[tokenId] = true;
+        mintedTokens[tokenId] = true;
         
         emit NFTMinted(to, tokenId, tokenURI);
         
@@ -74,10 +71,9 @@ contract GameNFT is ERC721URIStorage, Ownable, EIP712 {
     
     /**
      * @dev Mints a new NFT with server-side signature for authorization
-     * @param tokenId The token ID to mint
+     * @param tokenId The token ID to mint (also used as nonce)
      * @param receiver The address that will receive the minted token
      * @param tokenURI The token URI for the new token
-     * @param nonce A unique number to prevent replay attacks
      * @param deadline Timestamp after which the signature is invalid
      * @param signature The EIP-712 signature authorizing the mint
      */
@@ -85,22 +81,19 @@ contract GameNFT is ERC721URIStorage, Ownable, EIP712 {
         uint256 tokenId,
         address receiver,
         string memory tokenURI,
-        uint256 nonce,
         uint256 deadline,
         bytes memory signature
     ) public {
         require(block.timestamp <= deadline, "Permit expired");
-        require(!usedNonces[nonce], "Nonce already used");
-        require(!_mintedTokens[tokenId], "Token ID already minted");
+        require(!mintedTokens[tokenId], "Token ID already minted");
         
-        // Verify signature
+        // Verify signature (using tokenId as nonce)
         bytes32 structHash = keccak256(
             abi.encode(
                 PERMIT_TYPEHASH,
                 tokenId,
                 receiver,
                 keccak256(bytes(tokenURI)),
-                nonce,
                 deadline
             )
         );
@@ -109,13 +102,10 @@ contract GameNFT is ERC721URIStorage, Ownable, EIP712 {
         address signer = hash.recover(signature);
         require(signer == permissionedSigner, "Invalid signature");
         
-        // Mark nonce as used
-        usedNonces[nonce] = true;
-        
         // Mint the token
         _safeMint(receiver, tokenId);
         _setTokenURI(tokenId, tokenURI);
-        _mintedTokens[tokenId] = true;
+        mintedTokens[tokenId] = true;
         
         emit NFTMinted(receiver, tokenId, tokenURI);
     }
@@ -140,6 +130,6 @@ contract GameNFT is ERC721URIStorage, Ownable, EIP712 {
      * @param tokenId The token ID to check
      */
     function exists(uint256 tokenId) public view returns (bool) {
-        return _mintedTokens[tokenId];
+        return mintedTokens[tokenId];
     }
 } 

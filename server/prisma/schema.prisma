@@ -24,7 +24,7 @@ model Game {
 
 // Player model
 model Player {
-  id            Int      @id @default(autoincrement())
+  pk            Int      @id @default(autoincrement())
   gameId        Int
   game          Game     @relation(fields: [gameId], references: [id])
   playerId      String?
@@ -33,7 +33,8 @@ model Player {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  @@unique([gameId, playerId, playerAddress])
+  @@unique([gameId, playerId])
+  @@unique([gameId, playerAddress])
   @@map("players")
 }
 
@@ -42,7 +43,7 @@ model Collection {
   id              Int      @id @default(autoincrement())
   gameId          Int
   game            Game     @relation(fields: [gameId], references: [id])
-  contractAddress String
+  contractAddress String   @unique
   name            String
   items           Item[]
   createdAt       DateTime @default(now())
@@ -53,9 +54,9 @@ model Collection {
 
 // Item model
 model Item {
-  id           Int                 @id @default(autoincrement())
-  playerId     Int
-  player       Player              @relation(fields: [playerId], references: [id])
+  pk           Int                 @id @default(autoincrement())
+  playerPk     Int
+  player       Player              @relation(fields: [playerPk], references: [pk])
   collectionId Int
   collection   Collection          @relation(fields: [collectionId], references: [id])
   name         String
@@ -67,15 +68,15 @@ model Item {
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
 
-  @@map("items")
   @@unique([collectionId, tokenId])
+  @@map("items")
 }
 
 // MetadataAttribute model
 model MetadataAttribute {
   id        Int      @id @default(autoincrement())
   itemId    Int
-  item      Item     @relation(fields: [itemId], references: [id])
+  item      Item     @relation(fields: [itemId], references: [pk])
   traitType String
   value     String
   createdAt DateTime @default(now())

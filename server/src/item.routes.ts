@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { createItemSchema } from "../validation/schemas";
-import { dbService } from "../services/db.service";
+import { createItemSchema } from "./schemas";
+import { dbService } from "./db.service";
 import { z, ZodError } from "zod";
-import { signMintPermit, generateNonce, generateDeadline } from "../utils/signature";
+import { signMintPermit, generateDeadline } from "./utils/signature";
 
 const router = Router();
 
@@ -22,7 +22,9 @@ router.post("/", async (req, res) => {
     // Check if collection exists
     const collection = await dbService.getCollectionById(validatedData.collectionId);
     if (!collection) {
-      res.status(404).json({ error: `Collection with ID ${validatedData.collectionId} not found` });
+      res.status(404).json({
+        error: `Collection with ID ${validatedData.collectionId} not found`,
+      });
       return;
     }
 
@@ -54,14 +56,14 @@ router.post("/", async (req, res) => {
 });
 
 // Get item by ID
-router.get("/:id", async (req, res) => {
+router.get("/:pk", async (req, res) => {
   try {
-    const itemId = z.coerce.number().int().parse(req.params.id);
+    const itemPk = z.coerce.number().int().parse(req.params.pk);
 
-    const item = await dbService.getItemById(itemId);
+    const item = await dbService.getItemByPk(itemPk);
 
     if (!item) {
-      res.status(404).json({ error: `Item with ID ${itemId} not found` });
+      res.status(404).json({ error: `Item with PK ${itemPk} not found` });
       return;
     }
 
@@ -90,14 +92,14 @@ router.get("/:id", async (req, res) => {
 });
 
 // Get minting information for an item
-router.get("/:id/mint", async (req, res) => {
+router.get("/:pk/mint", async (req, res) => {
   try {
-    const itemId = z.coerce.number().int().parse(req.params.id);
+    const itemPk = z.coerce.number().int().parse(req.params.pk);
 
-    const item = await dbService.getItemById(itemId);
+    const item = await dbService.getItemByPk(itemPk);
 
     if (!item) {
-      res.status(404).json({ error: `Item with ID ${itemId} not found` });
+      res.status(404).json({ error: `Item with PK ${itemPk} not found` });
       return;
     }
 
@@ -114,31 +116,24 @@ router.get("/:id/mint", async (req, res) => {
       return;
     }
 
-    // Generate token URI
-    // FIXME: this is horrendously wrong
-    const baseUri = `${process.env.API_BASE_URL}/api`;
-    const tokenUri = `${baseUri}/items/${item.id}`;
-
-    // Generate nonce and deadline
-    const nonce = generateNonce();
+    // Use the itemPk as the tokenURI - the contract will concatenate with baseURI
+    const tokenURI = itemPk.toString();
     const deadline = generateDeadline();
 
-    // Sign the mint permit using EIP-712
     const signatureData = await signMintPermit(
       collection.contractAddress,
       item.tokenId,
       item.player.playerAddress,
-      tokenUri,
-      nonce,
+      tokenURI,
       deadline
     );
 
-    // Return the permit data and signature
-    res.status(200).json({
+    const response: MintingResponse = {
       contractAddress: collection.contractAddress,
       permitData: signatureData.permitData,
-      signature: signatureData.signature
-    });
+      signature: signatureData.signature,
+    };
+    res.status(200).json(response);
   } catch (error: unknown) {
     if (error instanceof ZodError) {
       res.status(400).json({
@@ -152,5 +147,15 @@ router.get("/:id/mint", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+export type MintingResponse = {
+  contractAddress: string;
+  permitData: {
+    tokenId: number;
+    receiver: `0x${string}`;
+    tokenURI: string;
+    deadline: number;
+  };
+  signature: `0x${string}`;
+};
 
 export default router;

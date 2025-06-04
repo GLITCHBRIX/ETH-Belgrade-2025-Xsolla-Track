@@ -40,3 +40,4 @@ coverage/
 .temp/ 
 
 database.sqlite
+database.sqlite-journal

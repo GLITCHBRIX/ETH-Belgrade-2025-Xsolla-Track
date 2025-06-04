@@ -63,12 +63,25 @@ Get mint data from the backend, then send a transaction with that date, includin
 5. Verify that the nft was deployed by calling its token uri method and printing out its token uri
 6. Try to GET the token uri and print the json that the backend returns
 
+# Monitor blockchain events
+To automatically track when NFTs are minted on the blockchain, you can use the listener service. This service monitors Transfer events from the contract and updates the database when NFTs are minted.
 
+## Run the listener service
+You can run the listener service separately:
+```sh
+yarn listener
+```
+
+## Run both server and listener
+To run both the API server and the blockchain listener together:
+```sh
+yarn dev:all
+```
 
 # Total shell cmd list
 ```sh
 anvil-zksync
-yarn tsx src/index.ts
+yarn dev:all
 
 cd ../contracts
 set -o allexport
@@ -81,4 +94,5 @@ yarn tsx 0_seed_db.ts
 yarn tsx 1_create_item.ts
 yarn tsx 2_link_user.ts
 yarn tsx 3_check_contract_health.ts
+yarn tsx 4_mint_item.ts
 ```

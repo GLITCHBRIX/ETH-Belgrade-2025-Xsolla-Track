@@ -34,7 +34,7 @@ async function main() {
     const { contractAddress, permitData, signature } = mintData;
     const { tokenId, receiver, tokenURI, deadline } = permitData;
 
-    let tokenURIFromContract: string = "http://localhost:3000/1";
+    let tokenURIFromContract: string = "";
     if (!tokenURIFromContract) {
       console.log("\nStep 3: Sending mint transaction...");
       const hash = await userWalletClient.writeContract({
@@ -47,8 +47,10 @@ async function main() {
       console.log(`Transaction sent! Hash: ${hash}`);
       console.log("\nStep 4: Waiting for transaction confirmation...");
       await publicClient.waitForTransactionReceipt({ hash });
+      console.log("Transaction confirmed!");
     }
-    console.log("Transaction confirmed!");
+    const ownerOf = await readContract(contractAddress, GameNFTABI.abi, "ownerOf", [BigInt(tokenId)]);
+    console.log(`Owner of token ${tokenId}: ${ownerOf}`);
 
     console.log("\nStep 5: Verifying the NFT was minted...");
     tokenURIFromContract = await readContract(contractAddress, GameNFTABI.abi, "tokenURI", [BigInt(tokenId)]);

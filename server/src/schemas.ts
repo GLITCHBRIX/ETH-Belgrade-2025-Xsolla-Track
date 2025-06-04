@@ -5,7 +5,9 @@ import { isAddress } from "viem";
 export const ethereumAddress = z
   .string()
   .toLowerCase()
-  .refine((value) => isAddress(value, { strict: false }), { message: "Invalid Ethereum address" });
+  .refine((value) => isAddress(value, { strict: false }), { 
+    message: "Invalid Ethereum address" 
+  });
 
 // Attribute schema
 export const attributeSchema = z.object({
@@ -30,17 +32,6 @@ export const createItemSchema = z
     playerId: z.string().optional(),
     playerAddress: ethereumAddress.optional(),
     metadata: nftMetadataSchema,
-  })
-  .refine((data) => data.playerId || data.playerAddress, {
-    message: "Either playerId or playerAddress must be provided",
-  });
-
-// Find Player request schema
-export const findPlayerSchema = z
-  .object({
-    gameId: z.number().int().positive(),
-    playerId: z.string().optional(),
-    playerAddress: ethereumAddress.optional(),
   })
   .refine((data) => data.playerId || data.playerAddress, {
     message: "Either playerId or playerAddress must be provided",

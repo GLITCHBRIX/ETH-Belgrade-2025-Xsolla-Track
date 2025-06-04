@@ -40,14 +40,15 @@ model Player {
 
 // Collection model
 model Collection {
-  id              Int      @id @default(autoincrement())
-  gameId          Int
-  game            Game     @relation(fields: [gameId], references: [id])
-  contractAddress String   @unique
-  name            String
-  items           Item[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                Int      @id @default(autoincrement())
+  gameId            Int
+  game              Game     @relation(fields: [gameId], references: [id])
+  contractAddress   String   @unique
+  name              String
+  items             Item[]
+  lastProcessedBlock BigInt?  @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@map("collections")
 }
@@ -64,6 +65,7 @@ model Item {
   image        String
   externalUrl  String?
   tokenId      Int
+  minted       Boolean             @default(false)
   attributes   MetadataAttribute[]
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt

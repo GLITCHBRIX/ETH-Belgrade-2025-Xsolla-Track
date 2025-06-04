@@ -1,6 +1,16 @@
-import { Player, PrismaClient } from "@prisma/client";
-import type { createItemSchema, findPlayerSchema } from "./schemas";
+import { Item, MetadataAttribute, Player, PrismaClient } from "@prisma/client";
+import type { createItemSchema } from "./schemas";
 import type { z } from "zod";
+
+const ItemIncludeAttributes = {
+  attributes: true,
+} as const;
+
+const PlayerIncludeAttributes = {
+  items: {
+    include: ItemIncludeAttributes,
+  },
+} as const;
 
 class DatabaseService {
   private prisma: PrismaClient;
@@ -22,16 +32,40 @@ class DatabaseService {
   }
 
   // Player methods
-  async findOrCreatePlayer(params: z.infer<typeof findPlayerSchema>) {
+  async findOrCreatePlayer(params: {
+    gameId: number;
+    playerId: string | undefined;
+    playerAddress: `0x${string}` | undefined;
+  }): Promise<Player & { items: Array<Item & { attributes: MetadataAttribute[] }> }> {
     const { gameId, playerId, playerAddress } = params;
 
-    // Find existing player
-    const existingPlayer = await this.prisma.player.findFirst({
-      where: {
-        gameId,
-        OR: [{ playerId: playerId || null }, { playerAddress: playerAddress || null }],
-      },
-    });
+    let existingPlayer:
+      | (Player & {
+          items: Array<Item & { attributes: MetadataAttribute[] }>;
+        })
+      | null = null;
+
+    // First try to find by specific parameters without OR condition
+    if (playerAddress) {
+      existingPlayer = await this.prisma.player.findFirst({
+        where: {
+          gameId,
+          playerAddress,
+        },
+        include: PlayerIncludeAttributes,
+      });
+    }
+
+    // If not found by address and playerId is provided, try by playerId
+    if (!existingPlayer && playerId) {
+      existingPlayer = await this.prisma.player.findFirst({
+        where: {
+          gameId,
+          playerId,
+        },
+        include: PlayerIncludeAttributes,
+      });
+    }
 
     if (existingPlayer) {
       return existingPlayer;
@@ -44,6 +78,7 @@ class DatabaseService {
         playerId,
         playerAddress,
       },
+      include: PlayerIncludeAttributes,
     });
   }
 
@@ -54,13 +89,24 @@ class DatabaseService {
    * @param playerAddress The player address
    * @returns An object with result status and player data
    */
-  async linkPlayer(gameId: number, playerId: string, playerAddress: string): Promise<{ status: "created" | "updated" | "not_modified", player: Player }> {
+  async linkPlayer(
+    gameId: number,
+    playerId: string,
+    playerAddress: string
+  ): Promise<{
+    status: "created" | "updated" | "not_modified";
+    player: Player & { items: Array<Item & { attributes: MetadataAttribute[] }> };
+  }> {
+    // Ensure the address is lowercase
+    const normalizedAddress = playerAddress.toLowerCase();
+
     // 1. Search for that playerId
     const playerByPlayerId = await this.prisma.player.findFirst({
       where: {
         gameId,
         playerId,
       },
+      include: PlayerIncludeAttributes,
     });
 
     if (playerByPlayerId) {
@@ -68,18 +114,19 @@ class DatabaseService {
       if (!playerByPlayerId.playerAddress) {
         const updatedPlayer = await this.prisma.player.update({
           where: { pk: playerByPlayerId.pk },
-          data: { playerAddress },
+          data: { playerAddress: normalizedAddress },
+          include: PlayerIncludeAttributes,
         });
         return { status: "updated", player: updatedPlayer };
       }
 
       // 3. If found that playerid and another address, return error
-      if (playerByPlayerId.playerAddress !== playerAddress) {
+      if (playerByPlayerId.playerAddress !== normalizedAddress) {
         throw new Error("Player already linked to a different address");
       }
 
       // 4. If found that playerid and same address, return "not modified"
-      if (playerByPlayerId.playerAddress === playerAddress) {
+      if (playerByPlayerId.playerAddress === normalizedAddress) {
         return { status: "not_modified", player: playerByPlayerId };
       }
     }
@@ -88,8 +135,9 @@ class DatabaseService {
     const playerByAddress = await this.prisma.player.findFirst({
       where: {
         gameId,
-        playerAddress,
+        playerAddress: normalizedAddress,
       },
+      include: PlayerIncludeAttributes,
     });
 
     if (playerByAddress) {
@@ -98,6 +146,7 @@ class DatabaseService {
         const updatedPlayer = await this.prisma.player.update({
           where: { pk: playerByAddress.pk },
           data: { playerId },
+          include: PlayerIncludeAttributes,
         });
         return { status: "updated", player: updatedPlayer };
       }
@@ -118,8 +167,9 @@ class DatabaseService {
       data: {
         gameId,
         playerId,
-        playerAddress,
+        playerAddress: normalizedAddress,
       },
+      include: PlayerIncludeAttributes,
     });
 
     return { status: "created", player: newPlayer };

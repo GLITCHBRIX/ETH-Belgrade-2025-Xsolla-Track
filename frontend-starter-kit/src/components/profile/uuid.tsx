@@ -1,7 +1,7 @@
 'use client';
 
 import { Image } from '@tamagui/image-next';
-import { Wallet, Face } from '@xsolla-zk/icons';
+import { Face } from '@xsolla-zk/icons';
 import { Button, Input, RichIcon, Separator, Stack, Typography } from '@xsolla-zk/react';
 import { useModal } from 'connectkit';
 

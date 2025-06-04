@@ -1,6 +1,6 @@
 'use client';
 
-import { TabBar, View, Text, NavBar, Typography } from '@xsolla-zk/react';
+import { TabBar, View, Text, NavBar, Typography, Stack } from '@xsolla-zk/react';
 import { useState, type ReactNode } from 'react';
 import { ScreenStack } from '~/components/stacks/screen-stack';
 import { Face, Question } from '@xsolla-zk/icons';
@@ -121,9 +121,9 @@ export function MainLayout({ children }: { children: ReactNode }) {
           <WalletButton />
         </NavBar.EndSlot>
       </NavBar>
-      <ScreenStack flex={1} overflow="hidden">
+      <Stack flex={1} overflow="hidden">
         {children}
-      </ScreenStack>
+      </Stack>
       <TabBar
         state={state}
         descriptors={descriptors}

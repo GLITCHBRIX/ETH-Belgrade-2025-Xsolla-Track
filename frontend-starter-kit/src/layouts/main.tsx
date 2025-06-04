@@ -102,8 +102,15 @@ export function MainLayout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <View maxWidth={1440} width="100%" height="100vh" marginHorizontal="auto">
-      <NavBar preset="default" backgroundColor="$layer.floor-1" height={85}>
+    <View
+      maxWidth={1440}
+      width="100%"
+      height="100vh"
+      marginHorizontal="auto"
+      flexDirection="column"
+      flex={1}
+    >
+      <NavBar preset="default" backgroundColor="$layer.floor-1" height={85} flexShrink={0}>
         <NavBar.StartSlot>
           <DynamicToggleThemeButton />
         </NavBar.StartSlot>
@@ -114,18 +121,16 @@ export function MainLayout({ children }: { children: ReactNode }) {
           <WalletButton />
         </NavBar.EndSlot>
       </NavBar>
-      <ScreenStack>{children}</ScreenStack>
+      <ScreenStack flex={1} overflow="hidden">
+        {children}
+      </ScreenStack>
       <TabBar
         state={state}
         descriptors={descriptors}
         navigation={navigation}
         backgroundColor="$background.neutral-low"
-        position="absolute"
-        bottom={0}
-        left={0}
-        right={0}
         height={80}
-        zIndex={1000}
+        flexShrink={0}
       />
     </View>
   );

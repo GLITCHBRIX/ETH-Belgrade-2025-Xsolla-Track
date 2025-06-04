@@ -2,15 +2,22 @@
 
 import { Stack } from '@xsolla-zk/react';
 import ProfileHeader from '~/components/profile/header';
-import { ConnectKitButton } from 'connectkit';
+import ConnectUUID from '~/components/profile/uuid';
+import ConnectWalletPage from '~/components/profile/wallet';
 
 export default function HomeScreen() {
   return (
-    <Stack flexDirection="column" paddingHorizontal={40} paddingTop={40}>
+    <Stack
+      flexDirection="column"
+      height="100%"
+      flex={1}
+      paddingHorizontal={40}
+      paddingVertical={40}
+      alignItems="center"
+    >
       <ProfileHeader />
-      <Stack marginVertical="$space.400" alignItems="center">
-        <ConnectKitButton />
-      </Stack>
+      {/* <ConnectWalletPage /> */}
+      <ConnectUUID />
     </Stack>
   );
 }

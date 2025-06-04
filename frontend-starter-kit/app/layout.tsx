@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { MainLayout } from '~/layouts/main';
+import { PlayerProvider } from '~/providers/player-context';
 import { NextTamaguiProvider } from '~/providers/root-provider';
 import { Web3Provider } from '~/providers/web3-provider';
 
@@ -80,7 +81,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <NextTamaguiProvider>
           <Web3Provider>
-            <MainLayout>{children}</MainLayout>
+            <PlayerProvider>
+              <MainLayout>{children}</MainLayout>
+            </PlayerProvider>
           </Web3Provider>
         </NextTamaguiProvider>
       </body>

@@ -8,7 +8,6 @@ import { Path, Svg } from 'react-native-svg';
 import type { IconProp, RichIconSizes } from '@xsolla-zk/react';
 import { Card } from '~/components/card/card';
 import { ContentStack } from '~/components/stacks/content-stack';
-import { WalletConnectButton } from '~/components/web3/wallet-connect-button';
 
 const Logo1 = memo(LogoXSollaZK) as IconProp;
 
@@ -65,11 +64,6 @@ export default function HomeScreen() {
           </RichIcon>
         </Input.StartSlot>
       </Input> */}
-
-      {/* Wallet Connect Button */}
-      <Stack marginVertical="$space.400" alignItems="center">
-        <WalletConnectButton />
-      </Stack>
 
       <Stack gap="$space.100">
         <Card onPress={() => push('/colors')}>Colors</Card>

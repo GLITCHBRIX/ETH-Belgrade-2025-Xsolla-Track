@@ -5,6 +5,8 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.*;
 
+import com.kassa.privates.api.ApiService;
+
 public class PrivateManager {
     private static PrivateManager instance;
     private final Map<String, BlockPos> playerFirstPoints = new HashMap<>();
@@ -72,13 +74,13 @@ public class PrivateManager {
         return null;
     }
 
-    public boolean createPrivateZone(String name, ServerPlayerEntity owner) {
+    public ZoneCreationResult createPrivateZone(String name, ServerPlayerEntity owner) {
         if (!hasBothPoints(owner)) {
-            return false;
+            return new ZoneCreationResult(false, "No selection points set", null);
         }
         
         if (getPlayerZoneByName(owner, name) != null) {
-            return false;
+            return new ZoneCreationResult(false, "Zone with this name already exists", null);
         }
         
         BlockPos pos1 = getFirstPoint(owner);
@@ -96,16 +98,48 @@ public class PrivateManager {
 
         for (PrivateZone existingZone : privateZones) {
             if (newZone.intersectsWith(existingZone)) {
-                return false;
+                return new ZoneCreationResult(false, "Zone intersects with existing zone", null);
             }
         }
+
+
+        System.out.println("Sending zone creation request to external API...");
+        ApiService.ApiResponse apiResponse = ApiService.createZone(
+            name, 
+            owner, 
+            newZone.getId()
+        );
+        
+        if (!apiResponse.isSuccess()) {
+            System.err.println("External API rejected zone creation: " + apiResponse.getMessage());
+            return new ZoneCreationResult(false, 
+                "External service rejected zone creation: " + apiResponse.getMessage(), null);
+        }
+        
+        System.out.println("External API approved zone creation, saving zone...");
         
         privateZones.add(newZone);
         saveZones();
         
         clearPoints(owner);
+
+        return new ZoneCreationResult(true, "Zone created successfully", newZone);
+    }
+
+    public static class ZoneCreationResult {
+        private final boolean success;
+        private final String message;
+        private final PrivateZone zone;
         
-        return true;
+        public ZoneCreationResult(boolean success, String message, PrivateZone zone) {
+            this.success = success;
+            this.message = message;
+            this.zone = zone;
+        }
+        
+        public boolean isSuccess() { return success; }
+        public String getMessage() { return message; }
+        public PrivateZone getZone() { return zone; }
     }
 
     public PrivateZone getPlayerZoneByName(ServerPlayerEntity player, String name) {

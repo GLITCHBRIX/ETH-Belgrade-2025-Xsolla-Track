@@ -120,8 +120,16 @@ public class PrivateCommand {
             return 0;
         }
         
-        if (manager.createPrivateZone(name, player)) {
-            PrivateZone zone = manager.getPlayerZoneByName(player, name);
+        player.sendMessage(
+            Text.literal("Checking zone creation with external service...")
+                .formatted(Formatting.YELLOW), 
+            false
+        );
+        
+        PrivateManager.ZoneCreationResult result = manager.createPrivateZone(name, player);
+        
+        if (result.isSuccess()) {
+            PrivateZone zone = result.getZone();
             
             player.sendMessage(
                 Text.literal("Private zone '")
@@ -141,8 +149,10 @@ public class PrivateCommand {
             return 1;
         } else {
             player.sendMessage(
-                Text.literal("Failed to create private zone!")
-                    .formatted(Formatting.RED), 
+                Text.literal("Failed to create private zone: ")
+                    .formatted(Formatting.RED)
+                    .append(Text.literal(result.getMessage())
+                        .formatted(Formatting.YELLOW)), 
                 false
             );
             return 0;

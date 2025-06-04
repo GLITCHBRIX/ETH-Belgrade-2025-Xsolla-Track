@@ -19,6 +19,7 @@
     "@xsolla-zk/config": "latest",
     "@xsolla-zk/icons": "latest",
     "@xsolla-zk/react": "latest",
+    "axios": "^1.9.0",
     "connectkit": "^1.9.0",
     "next": "catalog:next15",
     "react": "*",

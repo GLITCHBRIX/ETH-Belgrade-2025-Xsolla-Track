@@ -1,9 +1,13 @@
 'use client';
 
+import axios from 'axios';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAccount } from 'wagmi';
-import type { NFT, PlayerContextType, PlayerState } from '../interface/player';
+import type { PlayerContextType, PlayerState, Player, UserReturn, Item } from '../interface/player';
 import type { ReactNode } from 'react';
+
+// API endpoint
+const API_URL = 'https://8830-212-47-148-189.ngrok-free.app';
 
 // Initial state
 const initialState: PlayerState = {
@@ -19,48 +23,69 @@ const initialState: PlayerState = {
 // Create context
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
-// Mock NFT data
-const mockAvailableNFTs: NFT[] = [
-  {
-    id: 'nft-1',
-    name: 'Land Plot #1',
-    image: 'https://placeholder.com/land1.jpg',
-    metadata: {
-      coordinates: { x: 10, y: 20 },
-    },
-  },
-  {
-    id: 'nft-2',
-    name: 'Land Plot #2',
-    image: 'https://placeholder.com/land2.jpg',
-    metadata: {
-      coordinates: { x: 30, y: 40 },
-    },
-  },
-];
-
-const mockOwnedNFTs: NFT[] = [
-  {
-    id: 'nft-3',
-    name: 'Land Plot #3',
-    image: 'https://placeholder.com/land3.jpg',
-    metadata: {
-      coordinates: { x: 50, y: 60 },
-    },
-  },
-];
-
 // Provider component
 export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<PlayerState>(initialState);
   const { address } = useAccount();
-  
+
+  // Function to check if player exists
+  const checkPlayerExists = useCallback(async (walletAddress: string) => {
+    console.log('Checking if player exists for address:', walletAddress);
+    setState((prev) => ({ ...prev, isLoading: true }));
+
+    try {
+      const response = await axios.get<UserReturn>(
+        `${API_URL}/game/1/player?playerAddress=${walletAddress}`,
+      );
+      console.log('Player check response:', response.data);
+
+      // If we received playerId in the response, the player is registered
+      if (response.data?.playerId) {
+        console.log('Player found with ID:', response.data.playerId);
+
+        // Process items into minted (owned) and not minted (available) NFTs
+        const items = response.data.items || [];
+        const ownedNFTs: Item[] = items.filter((item) => item.minted);
+        const availableNFTs: Item[] = items.filter((item) => !item.minted);
+
+        console.log('Owned NFTs:', ownedNFTs.length);
+        console.log('Available NFTs:', availableNFTs.length);
+
+        setState((prev) => ({
+          ...prev,
+          isAuthenticated: true,
+          playerId: response.data.playerId,
+          ownedNFTs,
+          availableNFTs,
+          isLoading: false,
+        }));
+      } else {
+        // Player not found, but we don't show error - will be handled separately
+        console.log('Player not found for address:', walletAddress);
+        setState((prev) => ({
+          ...prev,
+          isLoading: false,
+        }));
+      }
+    } catch (error) {
+      console.error('Error checking player existence:', error);
+      setState((prev) => ({
+        ...prev,
+        error: 'Error checking player existence',
+        isLoading: false,
+      }));
+    }
+  }, []);
+
   // Update state when wallet address changes
   useEffect(() => {
     console.log('Address changed in context:', address);
     if (address) {
       setState((prev) => ({ ...prev, address }));
       console.log('Address set in state:', address);
+
+      // Check if player exists with this address
+      void checkPlayerExists(address);
     } else {
       // Reset state when wallet is disconnected
       console.log('Wallet disconnected, resetting state');
@@ -70,81 +95,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         error: prev.error,
       }));
     }
-  }, [address]);
-
-  // Mock functions
-  const connectWallet = useCallback(async (): Promise<void> => {
-    // This is now a no-op since ConnectKit handles the connection
-    // and the useEffect above will update the state
-    await Promise.resolve(); // Add await to satisfy linter
-  }, []);
-
-  const getPlayer = useCallback(async (address: string): Promise<void> => {
-    console.log('getPlayer called with address:', address);
-    setState((prev) => ({ ...prev, isLoading: true, error: null }));
-    try {
-      // Mock API call to get player
-      // In a real implementation, this would call your backend API
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate API delay
-      // Mock success - player found
-      setState((prev) => ({
-        ...prev,
-        isAuthenticated: true,
-        playerId: `player-${address.substring(0, 8)}`,
-        isLoading: false,
-      }));
-      console.log('getPlayer success, playerId set');
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        error: 'Player not found',
-        isLoading: false,
-      }));
-      console.log('getPlayer error');
-    }
-  }, []);
-
-  const registerPlayer = useCallback(async (address: string): Promise<void> => {
-    setState((prev) => ({ ...prev, isLoading: true, error: null }));
-    try {
-      // Mock API call to register player
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API delay
-      // Mock success
-      setState((prev) => ({
-        ...prev,
-        isAuthenticated: true,
-        playerId: `player-${address.substring(0, 8)}`,
-        isLoading: false,
-      }));
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        error: 'Failed to register player',
-        isLoading: false,
-      }));
-    }
-  }, []);
-
-  const getNFTs = useCallback(async (): Promise<void> => {
-    setState((prev) => ({ ...prev, isLoading: true, error: null }));
-    try {
-      // Mock API call to get NFTs
-      await new Promise((resolve) => setTimeout(resolve, 800)); // Simulate API delay
-      // Mock success
-      setState((prev) => ({
-        ...prev,
-        availableNFTs: mockAvailableNFTs,
-        ownedNFTs: mockOwnedNFTs,
-        isLoading: false,
-      }));
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        error: 'Failed to fetch NFTs',
-        isLoading: false,
-      }));
-    }
-  }, []);
+  }, [address, checkPlayerExists]);
 
   const reset = useCallback((): void => {
     setState(initialState);
@@ -153,10 +104,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   // Combine state and actions
   const value: PlayerContextType = {
     ...state,
-    connectWallet,
-    getPlayer,
-    registerPlayer,
-    getNFTs,
+    registerPlayer: () => Promise.resolve(),
     reset,
   };
 
@@ -171,4 +119,3 @@ export const usePlayer = (): PlayerContextType => {
   }
   return context;
 };
- 

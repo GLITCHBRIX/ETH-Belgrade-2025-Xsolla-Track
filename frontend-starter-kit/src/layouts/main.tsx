@@ -103,7 +103,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
 
   return (
     <View maxWidth={1440} width="100%" height="100vh" marginHorizontal="auto">
-      <NavBar preset="default" backgroundColor="$layer.floor-1">
+      <NavBar preset="default" backgroundColor="$layer.floor-1" height={85}>
         <NavBar.StartSlot>
           <DynamicToggleThemeButton />
         </NavBar.StartSlot>

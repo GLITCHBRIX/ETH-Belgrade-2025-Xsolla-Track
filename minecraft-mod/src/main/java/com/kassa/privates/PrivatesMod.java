@@ -1,6 +1,7 @@
 package com.kassa.privates;
 
 import com.kassa.privates.commands.PrivateCommand;
+import com.kassa.privates.handlers.ProtectionHandler;
 import com.kassa.privates.handlers.SelectionHandler;
 
 import net.fabricmc.api.ModInitializer;
@@ -16,6 +17,7 @@ public class PrivatesMod implements ModInitializer {
         CommandRegistrationCallback.EVENT.register(PrivateCommand::register);
 
         SelectionHandler.register();
+        ProtectionHandler.register();
         
         System.out.println("Mod Privates loaded successfully!");
     }

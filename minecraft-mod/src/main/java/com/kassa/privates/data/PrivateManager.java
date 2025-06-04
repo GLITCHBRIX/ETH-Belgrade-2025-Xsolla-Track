@@ -117,6 +117,13 @@ public class PrivateManager {
             .orElse(null);
     }
 
+    public PrivateZone getZoneAtPosition(BlockPos pos, String worldName) {
+        return privateZones.stream()
+            .filter(zone -> zone.containsBlock(pos, worldName))
+            .findFirst()
+            .orElse(null);
+    }
+
     private void saveZones() {
         dataStorage.saveZones(privateZones);
     }

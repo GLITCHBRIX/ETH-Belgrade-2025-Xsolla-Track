@@ -76,6 +76,9 @@ public class PrivateZone {
     public int getMaxY() { return maxY; }
     public int getMaxZ() { return maxZ; }
     public long getCreatedAt() { return createdAt; }
+
+    public void setOwnerUuid(String ownerUuid) { this.ownerUuid = ownerUuid; }
+    public void setOwnerName(String ownerName) { this.ownerName = ownerName; }
     
     
     public boolean isOwner(String uuid) {

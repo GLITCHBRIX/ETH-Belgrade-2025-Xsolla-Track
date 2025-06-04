@@ -126,6 +126,40 @@ public class PrivateManager {
         return new ZoneCreationResult(true, "Zone created successfully", newZone);
     }
 
+    public boolean changeZoneOwner(String zoneUuid, String newOwnerUuid, String newOwnerName) {
+        System.out.println("Attempting to change zone owner. Zone UUID: " + zoneUuid + ", New Owner: " + newOwnerUuid);
+        
+        PrivateZone targetZone = null;
+        for (PrivateZone zone : privateZones) {
+            if (zone.getId().equals(zoneUuid)) {
+                targetZone = zone;
+                break;
+            }
+        }
+        
+        if (targetZone == null) {
+            System.err.println("Zone with UUID " + zoneUuid + " not found");
+            return false;
+        }
+        
+        String oldOwner = targetZone.getOwnerName();
+        
+        targetZone.setOwnerUuid(newOwnerUuid);
+        targetZone.setOwnerName(newOwnerName);
+        
+        saveZones();
+        
+        System.out.println("Zone '" + targetZone.getName() + "' ownership changed from '" + oldOwner + "' to '" + newOwnerName + "'");
+        return true;
+    }
+
+    public PrivateZone getZoneByUuid(String zoneUuid) {
+        return privateZones.stream()
+            .filter(zone -> zone.getId().equals(zoneUuid))
+            .findFirst()
+            .orElse(null);
+    }
+
     public static class ZoneCreationResult {
         private final boolean success;
         private final String message;

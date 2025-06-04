@@ -2,16 +2,21 @@
 
 import { Grid2x2 } from '@xsolla-zk/icons';
 import { getSafeTokenValue, RichIcon, SemanticText, Stack } from '@xsolla-zk/react';
+import { useRouter } from 'next/navigation';
 import { memo } from 'react';
 import { Path, Svg } from 'react-native-svg';
 import type { IconProp, RichIconSizes } from '@xsolla-zk/react';
 import { Card } from '~/components/card/card';
 import { ContentStack } from '~/components/stacks/content-stack';
-import { useRouter } from 'next/navigation';
+import { WalletConnectButton } from '~/components/web3/wallet-connect-button';
 
 const Logo1 = memo(LogoXSollaZK) as IconProp;
 
 export default function HomeScreen() {
+  // TODO: Consider fixing potential 'this' binding issue with router methods
+  // Linter warning: Avoid referencing unbound methods which may cause unintentional scoping of `this`
+  // Fix example:
+  // const router = useRouter();
   const { push } = useRouter();
 
   return (
@@ -60,6 +65,12 @@ export default function HomeScreen() {
           </RichIcon>
         </Input.StartSlot>
       </Input> */}
+
+      {/* Wallet Connect Button */}
+      <Stack marginVertical="$space.400" alignItems="center">
+        <WalletConnectButton />
+      </Stack>
+
       <Stack gap="$space.100">
         <Card onPress={() => push('/colors')}>Colors</Card>
         <Card onPress={() => push('/typography')}>Typography</Card>

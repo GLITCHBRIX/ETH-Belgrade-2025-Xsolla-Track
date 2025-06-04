@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { MainLayout } from '~/layouts/main';
 import { NextTamaguiProvider } from '~/providers/root-provider';
+import { Web3Provider } from '~/providers/web3-provider';
 
 export const metadata: Metadata = {
   title: {
@@ -78,7 +79,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <NextTamaguiProvider>
-          <MainLayout>{children}</MainLayout>
+          <Web3Provider>
+            <MainLayout>{children}</MainLayout>
+          </Web3Provider>
         </NextTamaguiProvider>
       </body>
     </html>

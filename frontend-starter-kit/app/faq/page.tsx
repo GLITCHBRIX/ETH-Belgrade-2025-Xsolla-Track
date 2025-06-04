@@ -1,12 +1,10 @@
 'use client';
 
 import { Stack } from '@xsolla-zk/react';
-import ProfileHeader from '~/components/profile/header';
-import NFTList from '~/components/profile/nftlist';
-import ConnectUUID from '~/components/profile/uuid';
-import ConnectWalletPage from '~/components/profile/wallet';
+import FAQContent from '~/components/faq/content';
+import FAQHeader from '~/components/faq/header';
 
-export default function HomeScreen() {
+export default function FAQScreen() {
   return (
     <Stack
       flexDirection="column"
@@ -16,10 +14,9 @@ export default function HomeScreen() {
       paddingTop={20}
       alignItems="center"
     >
-      <ProfileHeader />
-      {/* <ConnectWalletPage /> */}
-      {/* <ConnectUUID /> */}
-      <NFTList />
+      <FAQHeader />
+
+      <FAQContent />
     </Stack>
   );
 }

@@ -16,14 +16,14 @@ const DynamicToggleThemeButton = dynamic(
 );
 
 export function MainLayout({ children }: { children: ReactNode }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(1);
 
   const router = useRouter();
 
   const state = {
     index: currentIndex,
     routes: [
-      { name: '/colors', key: 'FAQ' },
+      { name: '/faq', key: 'FAQ' },
       { name: '/', key: 'profile' },
     ],
   };

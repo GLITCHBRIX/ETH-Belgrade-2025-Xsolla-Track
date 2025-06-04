@@ -3,6 +3,9 @@ package com.kassa.privates.handlers;
 import com.kassa.privates.data.PrivateManager;
 import com.kassa.privates.data.PrivateZone;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.event.player.UseEntityCallback;
+import net.fabricmc.fabric.api.event.player.UseItemCallback;
+import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -36,6 +39,53 @@ public class ProtectionHandler {
             }
             
             BlockPos pos = hitResult.getBlockPos();
+            
+            if (isProtectedAndNotOwner(serverPlayer, pos)) {
+                sendProtectionMessage(serverPlayer);
+                return ActionResult.FAIL;
+            }
+            
+            return ActionResult.PASS;
+        });
+
+        UseItemCallback.EVENT.register((player, world, hand) -> {
+            if (world.isClient() || !(player instanceof ServerPlayerEntity serverPlayer)) {
+                return ActionResult.PASS;
+            }
+            
+            if (com.kassa.privates.items.SelectionStick.isSelectionStick(serverPlayer.getStackInHand(hand))) {
+                return ActionResult.PASS;
+            }
+            
+            BlockPos playerPos = serverPlayer.getBlockPos();
+            
+            if (isProtectedAndNotOwner(serverPlayer, playerPos)) {
+                sendProtectionMessage(serverPlayer);
+                return ActionResult.FAIL;
+            }
+            
+            return ActionResult.PASS;
+        });
+
+        UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
+            if (world.isClient() || !(player instanceof ServerPlayerEntity serverPlayer)) {
+                return ActionResult.PASS;
+            }
+            
+            BlockPos entityPos = entity.getBlockPos();
+            
+            if (isProtectedAndNotOwner(serverPlayer, entityPos)) {
+                sendProtectionMessage(serverPlayer);
+                return ActionResult.FAIL;
+            }
+            
+            return ActionResult.PASS;
+        });
+
+        AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
+            if (world.isClient() || !(player instanceof ServerPlayerEntity serverPlayer)) {
+                return ActionResult.PASS;
+            }
             
             if (isProtectedAndNotOwner(serverPlayer, pos)) {
                 sendProtectionMessage(serverPlayer);

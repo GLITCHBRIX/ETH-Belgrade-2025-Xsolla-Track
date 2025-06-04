@@ -91,6 +91,18 @@ public class PrivateZone {
                pos.getY() >= minY && pos.getY() <= maxY &&
                pos.getZ() >= minZ && pos.getZ() <= maxZ;
     }
+
+    public boolean intersectsWith(PrivateZone other) {
+        if (!this.worldName.equals(other.worldName)) {
+            return false;
+        }
+        
+        boolean noOverlapX = this.maxX < other.minX || this.minX > other.maxX;
+        boolean noOverlapY = this.maxY < other.minY || this.minY > other.maxY;
+        boolean noOverlapZ = this.maxZ < other.minZ || this.minZ > other.maxZ;
+        
+        return !(noOverlapX || noOverlapY || noOverlapZ);
+    }
     
     public int getVolumeBlocks() {
         return (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);

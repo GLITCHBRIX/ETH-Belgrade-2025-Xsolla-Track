@@ -12,6 +12,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.math.BlockPos;
 
 public class PrivateCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, 
@@ -91,6 +92,28 @@ public class PrivateCommand {
                     .append(Text.literal(name)
                         .formatted(Formatting.YELLOW))
                     .append(Text.literal("'!")
+                        .formatted(Formatting.RED)), 
+                false
+            );
+            return 0;
+        }
+
+        BlockPos pos1 = manager.getFirstPoint(player);
+        BlockPos pos2 = manager.getSecondPoint(player);
+        String worldName = player.getServerWorld().getRegistryKey().getValue().toString();
+        
+        PrivateZone intersectingZone = manager.findIntersectingZone(pos1, pos2, worldName);
+        if (intersectingZone != null) {
+            player.sendMessage(
+                Text.literal("Cannot create private zone! The selected area intersects with existing private zone '")
+                    .formatted(Formatting.RED)
+                    .append(Text.literal(intersectingZone.getName())
+                        .formatted(Formatting.YELLOW))
+                    .append(Text.literal("' owned by ")
+                        .formatted(Formatting.RED))
+                    .append(Text.literal(intersectingZone.getOwnerName())
+                        .formatted(Formatting.YELLOW))
+                    .append(Text.literal(".")
                         .formatted(Formatting.RED)), 
                 false
             );

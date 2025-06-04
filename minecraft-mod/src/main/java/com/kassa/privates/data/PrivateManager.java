@@ -58,6 +58,20 @@ public class PrivateManager {
         playerSecondPoints.remove(uuid);
     }
 
+    public PrivateZone findIntersectingZone(BlockPos pos1, BlockPos pos2, String worldName) {
+        PrivateZone tempZone = new PrivateZone(
+            "temp", "", "", worldName, pos1, pos2
+        );
+        
+        for (PrivateZone existingZone : privateZones) {
+            if (tempZone.intersectsWith(existingZone)) {
+                return existingZone;
+            }
+        }
+        
+        return null;
+    }
+
     public boolean createPrivateZone(String name, ServerPlayerEntity owner) {
         if (!hasBothPoints(owner)) {
             return false;
@@ -71,7 +85,7 @@ public class PrivateManager {
         BlockPos pos2 = getSecondPoint(owner);
         String worldName = owner.getServerWorld().getRegistryKey().getValue().toString();
         
-        PrivateZone zone = new PrivateZone(
+        PrivateZone newZone  = new PrivateZone(
             name,
             owner.getUuidAsString(),
             owner.getName().getString(),
@@ -79,8 +93,14 @@ public class PrivateManager {
             pos1,
             pos2
         );
+
+        for (PrivateZone existingZone : privateZones) {
+            if (newZone.intersectsWith(existingZone)) {
+                return false;
+            }
+        }
         
-        privateZones.add(zone);
+        privateZones.add(newZone);
         saveZones();
         
         clearPoints(owner);

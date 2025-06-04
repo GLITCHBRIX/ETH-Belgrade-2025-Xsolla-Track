@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Stack, SemanticText } from '@xsolla-zk/react';
+import { Stack, SemanticText, Input, Button } from '@xsolla-zk/react';
 import { ConnectKitButton } from 'connectkit';
 import { usePlayer } from '../../src/providers/player-context';
 import { ContentStack } from '../../src/components/stacks/content-stack';
@@ -9,6 +9,24 @@ import { Card } from '../../src/components/card/card';
 
 export default function TestPage() {
   const playerContext = usePlayer();
+  const [customPlayerId, setCustomPlayerId] = React.useState('');
+  const [inputError, setInputError] = React.useState('');
+
+  // Handler for registering player
+  const handleRegisterPlayer = () => {
+    if (!playerContext.address) {
+      console.error('No wallet address available. Connect wallet first.');
+      return;
+    }
+
+    if (!customPlayerId.trim()) {
+      setInputError('Player ID is required');
+      return;
+    }
+
+    setInputError('');
+    playerContext.registerPlayer(playerContext.address, customPlayerId);
+  };
 
   return (
     <>
@@ -35,6 +53,56 @@ export default function TestPage() {
       <Stack marginVertical="$space.400" alignItems="center">
         <ConnectKitButton />
       </Stack>
+
+      {/* Registration Section - Only show if wallet connected but player not registered */}
+      {playerContext.address && !playerContext.isAuthenticated && (
+        <Stack
+          gap="$space.300"
+          marginVertical="$space.400"
+          padding="$space.300"
+          borderWidth="$stroke.100"
+          borderColor="$border.neutral-secondary"
+          borderRadius="$radius.550"
+        >
+          <SemanticText variant="headerXs">Register Player</SemanticText>
+
+          <Input
+            placeholder="Enter Player ID (required)"
+            value={customPlayerId}
+            onChangeText={(text) => {
+              setCustomPlayerId(text);
+              if (text.trim()) setInputError('');
+            }}
+            size="$500"
+            marginBottom="$space.200"
+          />
+
+          {inputError && (
+            <SemanticText
+              variant="paragraphS"
+              color="$content.critical-tertiary"
+              marginBottom="$space.200"
+            >
+              {inputError}
+            </SemanticText>
+          )}
+
+          <Button
+            onPress={handleRegisterPlayer}
+            disabled={playerContext.isLoading || !customPlayerId.trim()}
+            size="$500"
+            variant="primary"
+          >
+            Register Player
+          </Button>
+
+          {playerContext.error && (
+            <SemanticText variant="paragraphS" color="$content.critical-tertiary">
+              {playerContext.error}
+            </SemanticText>
+          )}
+        </Stack>
+      )}
 
       {/* Player Context State Display */}
       <Stack gap="$space.400" marginTop="$space.400">

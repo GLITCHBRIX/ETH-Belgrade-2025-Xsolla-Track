@@ -43,6 +43,6 @@ export interface PlayerState {
 }
 
 export interface PlayerContextType extends PlayerState {
-  registerPlayer: (address: string) => Promise<void>;
+  registerPlayer: (address: string, playerId: string) => Promise<void>;
   reset: () => void;
 }

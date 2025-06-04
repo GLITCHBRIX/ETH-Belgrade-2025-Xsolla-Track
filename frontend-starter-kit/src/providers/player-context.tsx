@@ -3,7 +3,7 @@
 import axios from 'axios';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAccount } from 'wagmi';
-import type { PlayerContextType, PlayerState, Player, UserReturn, Item } from '../interface/player';
+import type { PlayerContextType, PlayerState, UserReturn, Item } from '../interface/player';
 import type { ReactNode } from 'react';
 
 // API endpoint
@@ -97,6 +97,50 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [address, checkPlayerExists]);
 
+  // Register player function
+  const registerPlayer = useCallback(
+    async (playerAddress: string, playerId: string): Promise<void> => {
+      console.log('Registering player with address:', playerAddress, 'and playerId:', playerId);
+
+      if (!playerId) {
+        console.error('Player ID is required for registration');
+        setState((prev) => ({
+          ...prev,
+          error: 'Player ID is required for registration',
+        }));
+        return;
+      }
+
+      setState((prev) => ({ ...prev, isLoading: true, error: null }));
+
+      try {
+        const playerData = {
+          playerId,
+          playerAddress,
+        };
+
+        console.log('Sending registration data:', playerData);
+
+        const response = await axios.post(`${API_URL}/game/1/player`, playerData);
+
+        console.log('Registration response:', response.data);
+
+        if (response.data) {
+          // After successful registration, check player data to get updated info
+          void checkPlayerExists(playerAddress);
+        }
+      } catch (error) {
+        console.error('Error registering player:', error);
+        setState((prev) => ({
+          ...prev,
+          error: 'Failed to register player',
+          isLoading: false,
+        }));
+      }
+    },
+    [checkPlayerExists],
+  );
+
   const reset = useCallback((): void => {
     setState(initialState);
   }, []);
@@ -104,7 +148,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   // Combine state and actions
   const value: PlayerContextType = {
     ...state,
-    registerPlayer: () => Promise.resolve(),
+    registerPlayer,
     reset,
   };
 

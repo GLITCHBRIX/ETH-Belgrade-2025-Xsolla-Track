@@ -173,6 +173,15 @@ export default function TestPage() {
                         Description: {nft.description}
                       </SemanticText>
                     )}
+                    <Button
+                      onPress={() => playerContext.mintNFT(nft.pk)}
+                      disabled={playerContext.isLoading}
+                      size="$500"
+                      variant="primary"
+                      marginTop="$space.200"
+                    >
+                      Mint NFT
+                    </Button>
                   </Stack>
                 </Card>
               ))}

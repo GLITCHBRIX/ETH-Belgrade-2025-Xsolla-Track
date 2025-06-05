@@ -14,6 +14,10 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
 public class PrivateCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, 
                                CommandRegistryAccess registryAccess, 
@@ -27,6 +31,9 @@ public class PrivateCommand {
             .then(CommandManager.literal("create")
                 .then(CommandManager.argument("name", StringArgumentType.string())
                     .executes(PrivateCommand::createPrivate)))
+            
+            .then(CommandManager.literal("list")
+                .executes(PrivateCommand::listPrivates))
         );
         
         SelectionStick.init();
@@ -157,5 +164,91 @@ public class PrivateCommand {
             );
             return 0;
         }
+    }
+
+    private static int listPrivates(CommandContext<ServerCommandSource> context) {
+        if (!(context.getSource().getEntity() instanceof ServerPlayerEntity player)) {
+            context.getSource().sendFeedback(() -> 
+                Text.literal("This command is only available to players!").formatted(Formatting.RED), false);
+            return 0;
+        }
+        
+        PrivateManager manager = PrivateManager.getInstance();
+        List<PrivateZone> playerZones = manager.getPlayerZones(player);
+        
+        if (playerZones.isEmpty()) {
+            player.sendMessage(
+                Text.literal("You don't have any private zones.")
+                    .formatted(Formatting.YELLOW)
+                    .append(Text.literal("\nUse ")
+                        .formatted(Formatting.GRAY))
+                    .append(Text.literal("/private wand")
+                        .formatted(Formatting.GREEN))
+                    .append(Text.literal(" and ")
+                        .formatted(Formatting.GRAY))
+                    .append(Text.literal("/private create <name>")
+                        .formatted(Formatting.GREEN))
+                    .append(Text.literal(" to create your first zone!")
+                        .formatted(Formatting.GRAY)), 
+                false
+            );
+            return 1;
+        }
+        
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm");
+        
+        Text header = Text.literal("═══ Your Private Zones (" + playerZones.size() + ") ═══")
+            .formatted(Formatting.GOLD, Formatting.BOLD);
+        
+        player.sendMessage(header, false);
+        
+        for (int i = 0; i < playerZones.size(); i++) {
+            PrivateZone zone = playerZones.get(i);
+            
+            int sizeX = zone.getMaxX() - zone.getMinX() + 1;
+            int sizeY = zone.getMaxY() - zone.getMinY() + 1;
+            int sizeZ = zone.getMaxZ() - zone.getMinZ() + 1;
+            
+            String createdDate = dateFormat.format(new Date(zone.getCreatedAt()));
+            String worldName = zone.getWorldName().replace("minecraft:", "");
+            
+            Text zoneInfo = Text.literal((i + 1) + ". ")
+                .formatted(Formatting.WHITE)
+                .append(Text.literal(zone.getName())
+                    .formatted(Formatting.AQUA, Formatting.BOLD))
+                .append(Text.literal("\n   Size: ")
+                    .formatted(Formatting.GRAY))
+                .append(Text.literal(sizeX + "x" + sizeY + "x" + sizeZ)
+                    .formatted(Formatting.GREEN))
+                .append(Text.literal(" (" + zone.getVolumeBlocks() + " blocks)")
+                    .formatted(Formatting.DARK_GREEN))
+                .append(Text.literal("\n   World: ")
+                    .formatted(Formatting.GRAY))
+                .append(Text.literal(worldName)
+                    .formatted(Formatting.YELLOW))
+                .append(Text.literal("\n   Position: ")
+                    .formatted(Formatting.GRAY))
+                .append(Text.literal(String.format("(%d, %d, %d) to (%d, %d, %d)", 
+                    zone.getMinX(), zone.getMinY(), zone.getMinZ(),
+                    zone.getMaxX(), zone.getMaxY(), zone.getMaxZ()))
+                    .formatted(Formatting.WHITE))
+                .append(Text.literal("\n   Created: ")
+                    .formatted(Formatting.GRAY))
+                .append(Text.literal(createdDate)
+                    .formatted(Formatting.LIGHT_PURPLE));
+            
+            player.sendMessage(zoneInfo, false);
+            
+            if (i < playerZones.size() - 1) {
+                player.sendMessage(Text.literal(""), false);
+            }
+        }
+        
+        Text footer = Text.literal("═══════════════════════════════")
+            .formatted(Formatting.GOLD);
+        
+        player.sendMessage(footer, false);
+        
+        return 1;
     }
 }

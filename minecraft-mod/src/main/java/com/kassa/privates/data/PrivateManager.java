@@ -192,6 +192,14 @@ public class PrivateManager {
             .orElse(null);
     }
 
+    public List<PrivateZone> getPlayerZones(ServerPlayerEntity player) {
+        String playerUuid = player.getUuidAsString();
+        return privateZones.stream()
+            .filter(zone -> zone.getOwnerUuid().equals(playerUuid))
+            .sorted((a, b) -> a.getName().compareToIgnoreCase(b.getName()))
+            .toList();
+    }
+
     private void saveZones() {
         dataStorage.saveZones(privateZones);
     }

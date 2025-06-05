@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "privates",
+  "version": "${version}",
+  "name": "Privates Mod",
+  "description": "Simple privates system for Fabric server",
+  "authors": ["kassa"],
+  "contact": {
+    "homepage": "https://github.com",
+    "sources": "https://github.com"
+  },
+  "license": "MIT",
+  "icon": "assets/privates/icon.png",
+  "environment": "server",
+  "entrypoints": {
+    "main": ["com.kassa.privates.PrivatesMod"]
+  },
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=21"
+  },
+  "suggests": {}
+}

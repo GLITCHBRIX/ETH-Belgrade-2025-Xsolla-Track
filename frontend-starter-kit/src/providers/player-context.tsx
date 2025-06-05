@@ -7,7 +7,7 @@ import type { PlayerContextType, PlayerState, UserReturn, Item } from '../interf
 import type { ReactNode } from 'react';
 
 // API endpoint
-const API_URL = 'https://8830-212-47-148-189.ngrok-free.app';
+const API_URL = 'https://48ad-212-47-148-189.ngrok-free.app';
 
 // Initial state
 const initialState: PlayerState = {

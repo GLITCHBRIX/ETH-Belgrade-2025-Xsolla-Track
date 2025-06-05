@@ -2,14 +2,39 @@
 
 import { Image } from '@tamagui/image-next';
 import { Face } from '@xsolla-zk/icons';
-import { Button, Input, RichIcon, Separator, Stack, Typography } from '@xsolla-zk/react';
+import {
+  Button,
+  Input,
+  RichIcon,
+  SemanticText,
+  Separator,
+  Stack,
+  Typography,
+} from '@xsolla-zk/react';
 import { useModal } from 'connectkit';
+import { useState } from 'react';
+import { usePlayer } from '~/providers/player-context';
 
 export default function ConnectUUID() {
-  const { setOpen } = useModal();
+  const playerContext = usePlayer();
+  const [playerId, setPlayerId] = useState('');
+  const [inputError, setInputError] = useState('');
 
-  const handleWalletClick = () => {
-    setOpen(true);
+  const handleRegisterPlayer = () => {
+    if (!playerContext.address) {
+      console.error('No wallet address available');
+      return;
+    }
+
+    if (!playerId.trim()) {
+      setInputError('Player ID is required');
+      return;
+    }
+
+    setInputError('');
+    console.log(playerContext.address);
+    console.log(playerId);
+    playerContext.registerPlayer(playerContext.address, playerId);
   };
 
   return (
@@ -31,17 +56,42 @@ export default function ConnectUUID() {
           <Separator weight="$stroke.100" />
         </Stack>
         <Stack flexDirection="row" width={229} alignItems="center" justifyContent="center" gap={5}>
-          <Input placeholder="UID" width={102}>
+          <Input
+            placeholder="UID"
+            width={102}
+            value={playerId}
+            onChangeText={(text) => {
+              setPlayerId(text);
+              if (text.trim()) setInputError('');
+            }}
+          >
             <Input.StartSlot>
               <RichIcon shape="squircle" size="$200">
                 <RichIcon.Icon icon={Face} />
               </RichIcon>
             </Input.StartSlot>
           </Input>
-          <Button onPress={handleWalletClick} height={40}>
-            <Typography preset="compact.250.accent">Check</Typography>
+          <Button onPress={handleRegisterPlayer} height={40}>
+            <Typography preset="compact.250.accent">
+              {playerContext.isLoading ? 'Loading' : 'Check'}
+            </Typography>
           </Button>
         </Stack>
+        {inputError && (
+          <Stack marginTop={10}>
+            <Typography preset="compact.250.default" color="$content.negative-primary">
+              {inputError}
+            </Typography>
+          </Stack>
+        )}
+
+        {playerContext.error && (
+          <Stack marginTop={10}>
+            <Typography preset="compact.250.default" color="$content.negative-primary">
+              {playerContext.error}
+            </Typography>
+          </Stack>
+        )}
       </Stack>
     </Stack>
   );

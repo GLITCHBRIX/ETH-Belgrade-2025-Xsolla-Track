@@ -14,8 +14,11 @@ import {
   Typography,
 } from '@xsolla-zk/react';
 import { PropsWithChildren, useState } from 'react';
+import { usePlayer } from '~/providers/player-context';
 
 export default function NFTList() {
+  const playerContext = usePlayer();
+
   const gameCards = [
     {
       id: 1,
@@ -78,14 +81,16 @@ export default function NFTList() {
   return (
     <Stack
       flex={1}
+      flexDirection="column"
       width="100%"
       alignItems="flex-start"
       justifyContent="flex-start"
+      alignContent="flex-start"
       overflow="hidden"
       paddingTop={10}
     >
+      <Typography preset="display.400.accent">Available for mint NFTs</Typography>
       <Stack
-        flex={1}
         flexDirection="row"
         gap={15}
         alignItems="flex-start"
@@ -96,8 +101,14 @@ export default function NFTList() {
         overflow="scroll"
         scrollbarWidth="none"
       >
-        {gameCards.map((card) => (
-          <Modal key={card.id} title={card.title} collection={card.subtitle} image={card.image}>
+        {playerContext.availableNFTs.map((card) => (
+          <Modal
+            key={card.pk}
+            title={card.name}
+            collection="Minecraft"
+            description={card.description}
+            image={card.image}
+          >
             <Stack
               flexDirection="column"
               width={204}
@@ -106,22 +117,89 @@ export default function NFTList() {
               padding={15}
               gap={12}
             >
-              <Image src={card.image} height={160} width={160} />
+              <Image src={card.image} height={200} width={200} />
 
-              <Cell withBoard width={160} height={60}>
+              <Cell withBoard width={200} height={60}>
                 <Cell.Content>
                   <List>
                     <List.Row>
-                      <List.Title preset="compact.300.accent">{card.title}</List.Title>
+                      <List.Title
+                        preset="compact.300.accent"
+                        maxWidth={150}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {card.name}
+                      </List.Title>
+                      <List.TitleValue
+                        preset="compact.300.numeric"
+                        color="$content.brand-extra-tertiary"
+                      >
+                        Mint
+                      </List.TitleValue>
+                    </List.Row>
+                    <List.Row>
+                      <List.SubtitleValue>Minecraft</List.SubtitleValue>
+                    </List.Row>
+                  </List>
+                </Cell.Content>
+              </Cell>
+            </Stack>
+          </Modal>
+        ))}
+      </Stack>
+
+      <Typography preset="display.400.accent">Owned NFTs</Typography>
+      <Stack
+        flexDirection="row"
+        gap={15}
+        alignItems="flex-start"
+        alignContent="flex-start"
+        justifyContent="flex-start"
+        flexWrap="wrap"
+        width="100%"
+        overflow="scroll"
+        scrollbarWidth="none"
+      >
+        {playerContext.ownedNFTs.map((card) => (
+          <Modal
+            key={card.pk}
+            title={card.name}
+            collection="Minecraft"
+            description={card.description}
+            image={card.image}
+          >
+            <Stack
+              flexDirection="column"
+              width={204}
+              alignItems="center"
+              justifyContent="center"
+              padding={15}
+              gap={12}
+            >
+              <Image src={card.image} height={200} width={200} />
+
+              <Cell withBoard width={200} height={60}>
+                <Cell.Content>
+                  <List>
+                    <List.Row>
+                      <List.Title
+                        preset="compact.300.accent"
+                        maxWidth={150}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {card.name}
+                      </List.Title>
                       <List.TitleValue
                         preset="compact.300.numeric"
                         color="$content.neutral-tertiary"
                       >
-                        Value
+                        Minted
                       </List.TitleValue>
                     </List.Row>
                     <List.Row>
-                      <List.SubtitleValue>{card.subtitle}</List.SubtitleValue>
+                      <List.SubtitleValue>Minecraft</List.SubtitleValue>
                     </List.Row>
                   </List>
                 </Cell.Content>
@@ -137,10 +215,11 @@ export default function NFTList() {
 interface ModalProps {
   title: string;
   collection: string;
+  description: string;
   image: string;
 }
 
-function Modal({ children, title, collection, image }: PropsWithChildren<ModalProps>) {
+function Modal({ children, title, collection, description, image }: PropsWithChildren<ModalProps>) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -215,19 +294,16 @@ function Modal({ children, title, collection, image }: PropsWithChildren<ModalPr
           >
             <Stack flexDirection="row" gap={20}>
               <Image src={image} height={160} width={160} />
-              <Stack flexDirection="column" alignItems="flex-start" flex={1}>
+              <Stack flexDirection="column" alignItems="flex-start" flex={1} maxWidth={160}>
                 <SemanticText variant="paragraphM" color="$content.neutral-primary">
                   {collection}
                 </SemanticText>
                 <List width="100%">
-                  <List.Row justifyContent="space-between">
+                  <List.Row width="100%">
                     <List.Title preset="compact.350.accent">{title}</List.Title>
-                    <List.TitleValue
-                      preset="compact.350.numeric"
-                      color="$content.neutral-secondary"
-                    >
-                      Value
-                    </List.TitleValue>
+                  </List.Row>
+                  <List.Row width="100%">
+                    <List.Title preset="compact.250.default">{description}</List.Title>
                   </List.Row>
                 </List>
               </Stack>

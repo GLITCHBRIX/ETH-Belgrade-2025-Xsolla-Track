@@ -13,9 +13,7 @@ contract DeployGameNFT is Script {
         string memory symbol = "MPPNFT";
         string memory baseURI = "http://localhost:3000/";
 
-        // Assertively derive the signer address from the SIGNER_PRIVATE_KEY environment variable
-        uint256 signerPrivateKey = vm.envUint("SIGNER_PRIVATE_KEY");
-        address signer = vm.addr(signerPrivateKey);
+        address signer = vm.envAddress("SIGNER_ADDRESS");
 
         vm.startBroadcast(deployerPrivateKey);
 

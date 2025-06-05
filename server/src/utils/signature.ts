@@ -1,11 +1,11 @@
 import { privateKeyToAccount } from "viem/accounts";
 import { createWalletClient, http } from "viem";
 import type { TypedDataDomain } from "viem";
-import { xsollaZK } from "./blockchain";
+import { currentChain } from "./blockchain";
 import { env } from "../config";
 
 // Configure based on environment
-const chainId = xsollaZK.id;
+const chainId = currentChain.id;
 
 // Use signer private key from environment variables with config validation
 const SIGNER_PRIVATE_KEY = env.SIGNER_PRIVATE_KEY;
@@ -14,7 +14,7 @@ const SIGNER_PRIVATE_KEY = env.SIGNER_PRIVATE_KEY;
 const account = privateKeyToAccount(SIGNER_PRIVATE_KEY as `0x${string}`);
 const walletClient = createWalletClient({
   account,
-  chain: xsollaZK,
+  chain: currentChain,
   transport: http(),
 });
 

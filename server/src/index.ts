@@ -2,6 +2,7 @@
 import { env, isDevelopment } from "./config";
 import app from "./app";
 import { startListening } from "./listener";
+import { currentChain } from "./utils/blockchain";
 
 const PORT = process.env.PORT || 3000;
 
@@ -15,7 +16,7 @@ app.listen(PORT, () => {
   console.log(`Health check: http://localhost:${PORT}/health`);
 
   if (isDevelopment) {
-    console.log("Running in development mode with anvil-zksync local network");
+    console.log(`Running in development mode with ${currentChain.name} network`);
   }
   
   // Start the blockchain listener if enabled

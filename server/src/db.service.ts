@@ -1,9 +1,12 @@
-import { Item, MetadataAttribute, Player, PrismaClient } from "@prisma/client";
+import { Collection, Item, MetadataAttribute, Player, PrismaClient } from "@prisma/client";
 import type { createItemSchema } from "./schemas";
 import type { z } from "zod";
+import { env } from "./config";
+import axios from "axios";
 
 const ItemIncludeAttributes = {
   attributes: true,
+  collection: true,
 } as const;
 
 const PlayerIncludeAttributes = {
@@ -36,12 +39,12 @@ class DatabaseService {
     gameId: number;
     playerId: string | undefined;
     playerAddress: `0x${string}` | undefined;
-  }): Promise<Player & { items: Array<Item & { attributes: MetadataAttribute[] }> }> {
+  }): Promise<Player & { items: Array<Item & { attributes: MetadataAttribute[]; collection: Collection }> }> {
     const { gameId, playerId, playerAddress } = params;
 
     let existingPlayer:
       | (Player & {
-          items: Array<Item & { attributes: MetadataAttribute[] }>;
+          items: Array<Item & { attributes: MetadataAttribute[]; collection: Collection }>;
         })
       | null = null;
 
@@ -94,81 +97,86 @@ class DatabaseService {
     playerId: string,
     playerAddress: string
   ): Promise<{
-    status: "created" | "updated" | "not_modified";
-    player: Player & { items: Array<Item & { attributes: MetadataAttribute[] }> };
+    status: "created" | "updated" | "not_modified" | "merged";
+    player: Player & { items: Array<Item & { attributes: MetadataAttribute[]; collection: Collection }> };
   }> {
-    // Ensure the address is lowercase
-    const normalizedAddress = playerAddress.toLowerCase();
+    playerAddress = playerAddress.toLowerCase();
 
-    // 1. Search for that playerId
     const playerByPlayerId = await this.prisma.player.findFirst({
-      where: {
-        gameId,
-        playerId,
-      },
+      where: { gameId, playerId },
+      include: PlayerIncludeAttributes,
+    });
+    const playerByAddress = await this.prisma.player.findFirst({
+      where: { gameId, playerAddress },
       include: PlayerIncludeAttributes,
     });
 
+    if (playerByPlayerId && playerByAddress) {
+      if (playerByPlayerId.pk === playerByAddress.pk) return { status: "not_modified", player: playerByPlayerId };
+
+      return await this.prisma.$transaction(async (tx) => {
+        await tx.item.updateMany({
+          where: { playerPk: playerByAddress.pk },
+          data: { playerPk: playerByPlayerId.pk },
+        });
+        await tx.player.delete({ where: { pk: playerByAddress.pk } });
+        const player = await tx.player.update({
+          where: { pk: playerByPlayerId.pk },
+          data: { playerAddress },
+          include: PlayerIncludeAttributes,
+        });
+        return { status: "merged", player };
+      });
+    }
+
     if (playerByPlayerId) {
-      // 2. If found that playerid and no address, put the address and return success
       if (!playerByPlayerId.playerAddress) {
         const updatedPlayer = await this.prisma.player.update({
           where: { pk: playerByPlayerId.pk },
-          data: { playerAddress: normalizedAddress },
+          data: { playerAddress },
           include: PlayerIncludeAttributes,
         });
         return { status: "updated", player: updatedPlayer };
       }
 
-      // 3. If found that playerid and another address, return error
-      if (playerByPlayerId.playerAddress !== normalizedAddress) {
+      if (playerByPlayerId.playerAddress !== playerAddress)
         throw new Error("Player already linked to a different address");
-      }
-
-      // 4. If found that playerid and same address, return "not modified"
-      if (playerByPlayerId.playerAddress === normalizedAddress) {
-        return { status: "not_modified", player: playerByPlayerId };
-      }
     }
 
-    // 5. If not found, search for that address
-    const playerByAddress = await this.prisma.player.findFirst({
-      where: {
-        gameId,
-        playerAddress: normalizedAddress,
-      },
-      include: PlayerIncludeAttributes,
-    });
-
     if (playerByAddress) {
-      // 6. If found with that address but no playerid, put playerid and return success
       if (!playerByAddress.playerId) {
         const updatedPlayer = await this.prisma.player.update({
           where: { pk: playerByAddress.pk },
           data: { playerId },
           include: PlayerIncludeAttributes,
         });
+        // Send to the game server that the player was updated
+        const items = await this.prisma.item.findMany({
+          where: { playerPk: playerByAddress.pk },
+          include: { attributes: true },
+        });
+        for (const item of items) {
+          console.log(`Sending item ${item.pk} to the game server`);
+          const maybeItemUuid = item.attributes.find((a) => a.traitType === "uuid");
+          if (maybeItemUuid) {
+            const response = await axios.post<{ success: boolean; message: string }>(
+              `${env.GAME_SERVER_URL}/change-owner`,
+              {
+                uuid: maybeItemUuid.value,
+                newOwner: updatedPlayer.playerId,
+              }
+            );
+            console.log(`Game server response:`, response.data);
+          }
+        }
         return { status: "updated", player: updatedPlayer };
       }
 
-      // 7. If found but playerid is different, return error
-      if (playerByAddress.playerId !== playerId) {
-        throw new Error("Address already linked to a different player ID");
-      }
-
-      // 8. If found and playerid is the same, return not modified
-      if (playerByAddress.playerId === playerId) {
-        return { status: "not_modified", player: playerByAddress };
-      }
+      if (playerByAddress.playerId !== playerId) throw new Error("Address already linked to a different player ID");
     }
 
-    // 9. If not found either, create a new player
     const newPlayer = await this.prisma.player.create({
-      data: {
-        gameId,
-        playerId,
-        playerAddress: normalizedAddress,
-      },
+      data: { gameId, playerId, playerAddress },
       include: PlayerIncludeAttributes,
     });
 

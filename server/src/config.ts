@@ -9,18 +9,15 @@ const envSchema = z.object({
   // Node environment
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 
-  // Private keys
-  OWNER_PRIVATE_KEY: z.string().refine((val) => /^0x[a-fA-F0-9]{64}$/.test(val), {
-    message: "Invalid OWNER_PRIVATE_KEY format",
-  }),
   SIGNER_PRIVATE_KEY: z.string().refine((val) => /^0x[a-fA-F0-9]{64}$/.test(val), {
     message: "Invalid SIGNER_PRIVATE_KEY format",
   }),
 
   // API settings
-  API_BASE_URL: z.string().url().optional(),
+  API_BASE_URL: z.string().url(),
 
   // Add other env vars as needed
+  GAME_SERVER_URL: z.string().url(),
 });
 
 // For development environment, provide fallbacks for local testing
@@ -31,14 +28,12 @@ function getEnvWithFallbacks() {
     // Local development fallbacks
     NODE_ENV: process.env.NODE_ENV || "development",
 
-    // Default to anvil-zksync test accounts if not provided
-    OWNER_PRIVATE_KEY:
-      process.env.OWNER_PRIVATE_KEY || "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", // account #0
     SIGNER_PRIVATE_KEY:
       process.env.SIGNER_PRIVATE_KEY || "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d", // account #1
 
     // Default API base URL for local development
     API_BASE_URL: process.env.API_BASE_URL || "http://localhost:3000",
+    GAME_SERVER_URL: process.env.GAME_SERVER_URL || "http://localhost:8081",
   };
 
   return processEnv;
@@ -65,5 +60,5 @@ export const env = validateEnv();
 
 // Export other config values
 export const isDevelopment = env.NODE_ENV === "development";
-export const isProduction = env.NODE_ENV === "production";
-export const isTest = env.NODE_ENV === "test";
+// export const isProduction = env.NODE_ENV === "production";
+// export const isTest = env.NODE_ENV === "test";

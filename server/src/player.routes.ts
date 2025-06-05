@@ -37,6 +37,9 @@ router.post("/:gameId/player", async (req, res) => {
         case "updated":
           res.status(200).json(result.player);
           break;
+        case "merged":
+          res.status(200).json(result.player);
+          break;
         case "not_modified":
           // For 304, we should set the status but not send a body
           // This is a special case where we'll send 200 with a message instead

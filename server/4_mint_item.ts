@@ -1,7 +1,7 @@
 import axios from "axios";
 import { privateKeyToAccount } from "viem/accounts";
 import { createPublicClient, createWalletClient, http } from "viem";
-import { readContract, xsollaZK } from "./src/utils/blockchain";
+import { readContract, currentChain } from "./src/utils/blockchain";
 import GameNFTABI from "../contracts/out/GameNFT.sol/GameNFT.json";
 import type { MintingResponse } from "./src/item.routes";
 
@@ -12,12 +12,12 @@ const userAccount = privateKeyToAccount(USER_PRIVATE_KEY as `0x${string}`);
 // Create wallet client for the user
 const userWalletClient = createWalletClient({
   account: userAccount,
-  chain: xsollaZK,
+  chain: currentChain,
   transport: http(),
 });
 
 const publicClient = createPublicClient({
-  chain: xsollaZK,
+  chain: currentChain,
   transport: http(),
 });
 

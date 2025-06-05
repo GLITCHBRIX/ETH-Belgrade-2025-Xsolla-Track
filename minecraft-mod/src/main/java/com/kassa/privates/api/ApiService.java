@@ -13,7 +13,7 @@ import java.time.Duration;
 import java.util.List;
 
 public class ApiService {
-    private static final String API_URL = "https://8830-212-47-148-189.ngrok-free.app/items";
+    private static final String API_URL = "https://48ad-212-47-148-189.ngrok-free.app/items";
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .build();

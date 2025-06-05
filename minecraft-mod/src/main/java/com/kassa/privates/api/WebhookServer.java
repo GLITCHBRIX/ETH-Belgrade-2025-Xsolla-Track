@@ -11,7 +11,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class WebhookServer {
     private static final int PORT = 8081;
@@ -88,17 +90,42 @@ public class WebhookServer {
                     System.out.println("Changing owner to: " + newOwnerUuid);
                 }
                 
-                boolean result = PrivateManager.getInstance().changeZoneOwner(
-                    request.getUuid(), 
-                    newOwnerUuid,
-                    request.getNewOwner() == null ? "Pending Player" : "New Owner"
-                );
+                final String finalNewOwnerUuid = newOwnerUuid;
+                final String finalNewOwnerName = request.getNewOwner() == null ? "Pending Player" : "New Owner";
+                
+                CompletableFuture<Boolean> future = CompletableFuture.supplyAsync(() -> {
+                    try {
+                        System.out.println("Processing ownership change in background thread...");
+                        boolean result = PrivateManager.getInstance().changeZoneOwner(
+                            request.getUuid(), 
+                            finalNewOwnerUuid,
+                            finalNewOwnerName
+                        );
+                        System.out.println("Ownership change completed: " + result);
+                        return result;
+                    } catch (Exception e) {
+                        System.err.println("Error changing zone owner: " + e.getMessage());
+                        e.printStackTrace();
+                        return false;
+                    }
+                });
+                
+                Boolean result;
+                try {
+                    result = future.get(10, TimeUnit.SECONDS);
+                    System.out.println("Future completed with result: " + result);
+                } catch (Exception e) {
+                    System.err.println("Timeout or error waiting for operation: " + e.getMessage());
+                    e.printStackTrace();
+                    result = false;
+                }
                 
                 if (result) {
                     sendResponse(exchange, 200, new ApiResponse(true, "Zone ownership changed successfully"));
                 } else {
                     sendResponse(exchange, 404, new ApiResponse(false, "Zone not found or ownership change failed"));
                 }
+                
                 
             } catch (Exception e) {
                 System.err.println("Error processing ownership change request: " + e.getMessage());

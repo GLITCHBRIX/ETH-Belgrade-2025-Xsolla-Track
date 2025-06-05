@@ -30,6 +30,17 @@ export type MetadataAttribute = {
   value: string;
 };
 
+export type MintingResponse = {
+  contractAddress: string;
+  permitData: {
+    tokenId: number;
+    receiver: `0x${string}`;
+    tokenURI: string;
+    deadline: number;
+  };
+  signature: `0x${string}`;
+};
+
 export type UserReturn = Player & { items: Array<Item & { attributes: MetadataAttribute[] }> };
 
 export interface PlayerState {
@@ -45,4 +56,5 @@ export interface PlayerState {
 export interface PlayerContextType extends PlayerState {
   registerPlayer: (address: string, playerId: string) => Promise<void>;
   reset: () => void;
+  mintNFT: (pk: number) => Promise<void>;
 }

@@ -11,7 +11,8 @@ async function main() {
       collections: {
         create: {
           name: "Minecraft Private Property NFT",
-          contractAddress: "0x588758d8a0Ad1162A6294f3C274753137E664aE0".toLowerCase(),
+          contractAddress: "0x588758d8a0Ad1162A6294f3C274753137E664aE0".toLowerCase(), // Anvil address
+          // contractAddress: "0xef1F201957049c2Fb57bA48692b7AfAe9709A125".toLowerCase(), // Real sepolia address
         },
       },
     },

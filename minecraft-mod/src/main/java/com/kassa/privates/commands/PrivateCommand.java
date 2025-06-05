@@ -7,9 +7,13 @@ import com.kassa.privates.data.PrivateManager;
 import com.kassa.privates.data.PrivateZone;
 import com.kassa.privates.items.SelectionStick;
 import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.RawFilteredPair;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
@@ -34,6 +38,9 @@ public class PrivateCommand {
             
             .then(CommandManager.literal("list")
                 .executes(PrivateCommand::listPrivates))
+
+            .then(CommandManager.literal("uuid")
+                .executes(PrivateCommand::showPlayerUuid))
         );
         
         SelectionStick.init();
@@ -248,6 +255,71 @@ public class PrivateCommand {
             .formatted(Formatting.GOLD);
         
         player.sendMessage(footer, false);
+        
+        return 1;
+    }
+
+    private static int showPlayerUuid(CommandContext<ServerCommandSource> context) {
+        if (!(context.getSource().getEntity() instanceof ServerPlayerEntity player)) {
+            context.getSource().sendFeedback(() -> 
+                Text.literal("This command is only available to players!").formatted(Formatting.RED), false);
+            return 0;
+        }
+        
+        String playerUuid = player.getUuidAsString();
+        String playerName = player.getName().getString();
+        
+        try {
+            ItemStack book = new ItemStack(Items.WRITABLE_BOOK);
+            
+            String bookContent = String.format(
+                "Player Info\n\n" +
+                "Name: %s\n\n" +
+                "UUID:\n%s\n\n" +
+                "Copy UUID from here!",
+                playerName,
+                playerUuid
+            );
+            
+            java.util.List<RawFilteredPair<String>> pages = java.util.List.of(
+                RawFilteredPair.of(bookContent)
+            );
+            
+            book.set(DataComponentTypes.WRITABLE_BOOK_CONTENT, 
+                new net.minecraft.component.type.WritableBookContentComponent(pages));
+            
+            book.set(DataComponentTypes.CUSTOM_NAME, 
+                Text.literal("UUID Info: " + playerName)
+                    .formatted(Formatting.GOLD, Formatting.BOLD));
+            
+            if (player.giveItemStack(book)) {
+                player.sendMessage(
+                    Text.literal("You received a book with your UUID! ")
+                        .formatted(Formatting.GREEN)
+                        .append(Text.literal("Open it and copy the UUID.")
+                            .formatted(Formatting.YELLOW)), 
+                    false
+                );
+            } else {
+                player.sendMessage(
+                    Text.literal("Your inventory is full! Clear some space and try again.")
+                        .formatted(Formatting.RED), 
+                    false
+                );
+            }
+            
+        } catch (Exception e) {
+            System.err.println("Failed to create UUID book: " + e.getMessage());
+            e.printStackTrace();
+            
+            player.sendMessage(
+                Text.literal("Failed to create book. Your UUID: ")
+                    .formatted(Formatting.RED)
+                    .append(Text.literal(playerUuid)
+                        .formatted(Formatting.YELLOW)), 
+                false
+            );
+        }
         
         return 1;
     }

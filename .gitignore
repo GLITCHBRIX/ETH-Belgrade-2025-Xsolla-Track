@@ -1,0 +1,8 @@
+.pnpm-store/
+.cursorignore
+.cursor/
+
+# DevContainers
+.devcontainer/
+.devcontainer.json
+devcontainer.json

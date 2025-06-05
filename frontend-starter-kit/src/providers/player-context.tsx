@@ -31,7 +31,7 @@ const xsollaZkChain: Chain = {
 };
 
 // GameNFT contract address and ABI
-const GAME_NFT_CONTRACT_ADDRESS = '0xef1F201957049c2Fb57bA48692b7AfAe9709A125';
+export const GAME_NFT_CONTRACT_ADDRESS = '0xef1F201957049c2Fb57bA48692b7AfAe9709A125';
 const GAME_NFT_ABI = [
   {
     type: 'function',

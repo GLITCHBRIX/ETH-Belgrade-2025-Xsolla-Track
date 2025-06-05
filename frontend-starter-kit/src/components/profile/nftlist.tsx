@@ -1,7 +1,7 @@
 'use client';
 
 import { Image } from '@tamagui/image-next';
-import { Cross, Plus } from '@xsolla-zk/icons';
+import { Cross, Plus, Checkmark } from '@xsolla-zk/icons';
 import {
   Button,
   Cell,
@@ -14,69 +14,11 @@ import {
   Typography,
 } from '@xsolla-zk/react';
 import { PropsWithChildren, useState } from 'react';
-import { usePlayer } from '~/providers/player-context';
+import { GAME_NFT_CONTRACT_ADDRESS, usePlayer } from '~/providers/player-context';
+import { Linking } from 'react-native';
 
 export default function NFTList() {
   const playerContext = usePlayer();
-
-  const gameCards = [
-    {
-      id: 1,
-      title: 'Enter UID',
-      subtitle: 'Connect game',
-      image: '/test.png',
-      isMinted: true,
-    },
-    {
-      id: 2,
-      title: 'Stats',
-      subtitle: 'View stats',
-      image: '/test.png',
-      isMinted: false,
-    },
-    {
-      id: 3,
-      title: 'Controller',
-      subtitle: 'Game settings',
-      image: '/test.png',
-      isMinted: false,
-    },
-    {
-      id: 4,
-      title: 'Profile',
-      subtitle: 'Update profile',
-      image: '/test.png',
-      isMinted: false,
-    },
-    {
-      id: 5,
-      title: 'Profile',
-      subtitle: 'Update profile',
-      image: '/test.png',
-      isMinted: false,
-    },
-    {
-      id: 6,
-      title: 'Profile',
-      subtitle: 'Update profile',
-      image: '/test.png',
-      isMinted: false,
-    },
-    {
-      id: 7,
-      title: 'Profile',
-      subtitle: 'Update profile',
-      image: '/test.png',
-      isMinted: false,
-    },
-    {
-      id: 8,
-      title: 'Profile',
-      subtitle: 'Update profile',
-      image: '/test.png',
-      isMinted: false,
-    },
-  ];
 
   return (
     <Stack
@@ -104,10 +46,14 @@ export default function NFTList() {
         {playerContext.availableNFTs.map((card) => (
           <Modal
             key={card.pk}
+            pk={card.pk}
+            isLoading={playerContext.isLoading}
+            isMinted={false}
             title={card.name}
             collection="Minecraft"
             description={card.description}
             image={card.image}
+            handleMint={playerContext.mintNFT}
           >
             <Stack
               flexDirection="column"
@@ -164,10 +110,14 @@ export default function NFTList() {
         {playerContext.ownedNFTs.map((card) => (
           <Modal
             key={card.pk}
+            pk={card.pk}
+            isLoading={playerContext.isLoading}
+            isMinted={true}
             title={card.name}
             collection="Minecraft"
             description={card.description}
             image={card.image}
+            handleMint={playerContext.mintNFT}
           >
             <Stack
               flexDirection="column"
@@ -213,13 +163,27 @@ export default function NFTList() {
 }
 
 interface ModalProps {
+  pk: number;
+  isLoading: boolean;
+  isMinted: boolean;
   title: string;
   collection: string;
   description: string;
   image: string;
+  handleMint: (nftPk: number) => void;
 }
 
-function Modal({ children, title, collection, description, image }: PropsWithChildren<ModalProps>) {
+function Modal({
+  pk,
+  isLoading,
+  isMinted,
+  children,
+  title,
+  collection,
+  description,
+  image,
+  handleMint,
+}: PropsWithChildren<ModalProps>) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -321,10 +285,30 @@ function Modal({ children, title, collection, description, image }: PropsWithChi
               paddingHorizontal: '$platform.layout.margin-horizontal.xl',
             }}
           >
-            <Button>
-              <Plus />
-              <Typography preset="compact.350.accent">Mint NFT</Typography>
-            </Button>
+            {isMinted ? (
+              <Button
+                onPress={() =>
+                  Linking.openURL(`https://x.la/explorer/address/${GAME_NFT_CONTRACT_ADDRESS}`)
+                }
+                size="$500"
+                backgroundColor="$background.neutral-high"
+                marginTop="$space.200"
+              >
+                <Checkmark />
+                <Typography preset="compact.350.accent">View on scanner</Typography>
+              </Button>
+            ) : (
+              <Button
+                onPress={() => handleMint(pk)}
+                disabled={isLoading}
+                size="$500"
+                variant="primary"
+                marginTop="$space.200"
+              >
+                <Plus />
+                <Typography preset="compact.350.accent">Mint NFT</Typography>
+              </Button>
+            )}
           </Dialog.Footer>
         </Dialog.Content>
       </Dialog.Portal>
